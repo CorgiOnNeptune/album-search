@@ -1,49 +1,60 @@
-import React, { Fragment, useState, useEffect, useRef } from "react";
+import React, { Fragment, useState, useEffect, useRef } from 'react';
 
-import { differenceInDays } from "date-fns";
+import { differenceInDays } from 'date-fns';
 
-import axios from "axios";
+import axios from 'axios';
 
-import SearchBar from "components/SearchBar";
-import Error from "components/Error";
-import Filters from "components/Filters";
-import Results from "components/Results";
+import SearchBar from 'components/SearchBar';
+import Error from 'components/Error';
+import Filters from 'components/Filters';
+import Results from 'components/Results';
 
 export default function LiveSearch(props) {
+  const [term, setTerm] = useState('');
+  const [results, setResults] = useState([]);
+
+  useEffect(() => {
+    const testURL = `https://search-itunes.vercel.app/?term=${term}&country=CA&media=music&entity=album&attribute=artistTerm`;
+    axios.get(testURL).then((response) => {
+      setResults([...response.data.results]);
+      console.log(response);
+    });
+  }, [term]);
+
   const [search, setSearch] = useState({
-    term: "",
+    term: '',
     results: [],
-    loading: false
+    loading: false,
   });
 
   const [filters, setFilters] = useState({
     Explicit: true,
-    "1900s": true,
-    "2000s": true,
+    '1900s': true,
+    '2000s': true,
     Single: false,
-    EP: false
+    EP: false,
   });
 
   const [error, setError] = useState(false);
 
-  const prev = useRef("");
+  const prev = useRef('');
 
   function showError() {
     setSearch({
-      term: "",
+      term: '',
       results: [],
-      loading: false
+      loading: false,
     });
 
     setError(true);
   }
 
   useEffect(() => {
-    if (prev.current === "" && search.term === "") return;
+    if (prev.current === '' && search.term === '') return;
 
-    setSearch(prev => ({
+    setSearch((prev) => ({
       ...prev,
-      loading: true
+      loading: true,
     }));
 
     prev.current = search.term;
@@ -52,7 +63,7 @@ export default function LiveSearch(props) {
       .get(
         `https://itunes.apple.com/search?term=${search.term}&country=CA&media=music&entity=album&attribute=artistTerm`
       )
-      .then(response => {
+      .then((response) => {
         response.data.results.sort((a, b) => {
           return differenceInDays(
             new Date(b.releaseDate),
@@ -60,13 +71,13 @@ export default function LiveSearch(props) {
           );
         });
 
-        setSearch(search => ({
+        setSearch((search) => ({
           ...search,
           results: response.data.results,
-          loading: false
+          loading: false,
         }));
       })
-      .catch(error => {
+      .catch((error) => {
         showError();
       });
   }, [search.term]);
@@ -79,9 +90,9 @@ export default function LiveSearch(props) {
       <main>
         <SearchBar
           loading={search.loading}
-          onSearch={term => setSearch({ ...search, term })}
+          onSearch={(term) => setSearch({ ...search, term })}
         />
-        <Error show={error} onClose={event => setError(false)}>
+        <Error show={error} onClose={(event) => setError(false)}>
           The server returned an error.
         </Error>
         <Filters
